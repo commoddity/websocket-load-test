@@ -1,7 +1,9 @@
 package stats
 
 import (
+	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -18,6 +20,9 @@ type Manager struct {
 	spinnerChars      []string
 	spinnerIndex      int
 	needFullClear     bool
+	latestMessages    map[string]*types.LatestMessage // map subscription type to latest message
+	enableLogging     bool
+	config            *types.Config // store config for logging display
 }
 
 // NewManager creates a new statistics manager
@@ -26,6 +31,7 @@ func NewManager() *Manager {
 		stats:          &types.Stats{ClientStartTime: time.Now()},
 		messagesByType: make(map[string]int),
 		subIDToType:    make(map[string]string),
+		latestMessages: make(map[string]*types.LatestMessage),
 		spinnerChars:   []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
 		needFullClear:  true,
 	}
@@ -89,6 +95,36 @@ func (m *Manager) HandleResponse(response types.JSONRPCResponse) {
 	m.stats.CurrentConnMessages++
 	m.stats.LastEventTime = time.Now()
 
+	// Store latest message if logging is enabled
+	if m.enableLogging {
+		messageType := "unknown"
+		subscriptionType := "general"
+
+		if response.Method == "eth_subscription" {
+			messageType = "subscription"
+			// Extract subscription type from the subscription event
+			if params, ok := response.Params.(map[string]interface{}); ok {
+				if subscription, exists := params["subscription"]; exists {
+					if subType := m.getSubscriptionTypeFromID(fmt.Sprintf("%v", subscription)); subType != "" {
+						subscriptionType = subType
+					}
+				}
+			}
+		} else if response.Result != nil {
+			messageType = "confirmation"
+			subscriptionType = "confirmations"
+		} else if response.Error != nil {
+			messageType = "error"
+			subscriptionType = "errors"
+		}
+
+		m.latestMessages[subscriptionType] = &types.LatestMessage{
+			Content:     response,
+			ReceivedAt:  time.Now(),
+			MessageType: messageType,
+		}
+	}
+
 	if response.Method == "eth_subscription" {
 		m.stats.SubscriptionEvents++
 
@@ -118,6 +154,16 @@ func (m *Manager) SetSubscriptionMapping(subscriptionID, subscriptionType string
 	m.subIDToType[subscriptionID] = subscriptionType
 }
 
+// EnableLogging enables message logging
+func (m *Manager) EnableLogging() {
+	m.enableLogging = true
+}
+
+// SetConfig stores the configuration for logging display
+func (m *Manager) SetConfig(config *types.Config) {
+	m.config = config
+}
+
 // getSubscriptionTypeFromID attempts to determine subscription type from subscription ID
 func (m *Manager) getSubscriptionTypeFromID(subscriptionID string) string {
 	if subType, exists := m.subIDToType[subscriptionID]; exists {
@@ -135,6 +181,34 @@ func (m *Manager) DisplayRunningStats(totalSubscriptions int) {
 		m.needFullClear = false
 	} else {
 		fmt.Print("\033[H\033[0J")
+	}
+
+	// Grove Portal Header at the very top
+	separatorWidth := terminalWidth
+	if separatorWidth > 100 {
+		separatorWidth = 100
+	}
+	if separatorWidth < 20 {
+		separatorWidth = 20
+	}
+
+	fmt.Println(strings.Repeat("═", separatorWidth))
+	terminal.Green.Println("🌿 GROVE PORTAL - LIVE MESSAGE FEED")
+	fmt.Println(strings.Repeat("═", separatorWidth))
+
+	// Show connection information if config is available and logging is enabled
+	if m.enableLogging && m.config != nil {
+		terminal.Cyan.Printf("🌿 Service: %s\n", m.config.ServiceID)
+		terminal.Cyan.Printf("🔗 Connected to: %s\n", m.config.URL)
+
+		// Extract app ID from URL for display
+		if strings.Contains(m.config.URL, "/v1/") {
+			parts := strings.Split(m.config.URL, "/v1/")
+			if len(parts) > 1 && parts[1] != "" {
+				terminal.Cyan.Printf("🆔 Portal App ID: %s\n", parts[1])
+			}
+		}
+		fmt.Println(strings.Repeat("═", separatorWidth))
 	}
 
 	// Update spinner
@@ -167,13 +241,6 @@ func (m *Manager) DisplayRunningStats(totalSubscriptions int) {
 	terminal.Green.Println(headerText)
 
 	// Separator line
-	separatorWidth := terminalWidth
-	if separatorWidth > 100 {
-		separatorWidth = 100
-	}
-	if separatorWidth < 20 {
-		separatorWidth = 20
-	}
 	fmt.Println(strings.Repeat("═", separatorWidth))
 
 	// Connection Stats
@@ -272,6 +339,48 @@ func (m *Manager) DisplayRunningStats(totalSubscriptions int) {
 	fmt.Println()
 	fmt.Println(strings.Repeat("═", separatorWidth))
 	fmt.Printf("🕐 Last Updated: %s\n", time.Now().Format("15:04:05"))
+
+	// Show latest messages by subscription type if logging is enabled
+	if m.enableLogging && len(m.latestMessages) > 0 {
+		fmt.Println()
+		terminal.Yellow.Println("📝 LATEST MESSAGES BY TYPE")
+
+		// Sort subscription types for consistent display
+		types := make([]string, 0, len(m.latestMessages))
+		for subType := range m.latestMessages {
+			types = append(types, subType)
+		}
+		sort.Strings(types)
+
+		// Display messages grouped by subscription type
+		for _, subType := range types {
+			msg := m.latestMessages[subType]
+			if msg == nil {
+				continue
+			}
+
+			emoji := terminal.GetSubscriptionEmoji(subType)
+			if subType == "confirmations" {
+				emoji = "✅"
+			} else if subType == "errors" {
+				emoji = "❌"
+			}
+
+			fmt.Println()
+			terminal.Cyan.Printf("%s %s - Received at %s:\n",
+				emoji, subType, msg.ReceivedAt.Format("15:04:05"))
+
+			// Format the JSON nicely
+			jsonBytes, err := json.MarshalIndent(msg.Content, "", "  ")
+			if err != nil {
+				terminal.Red.Printf("Error formatting JSON: %v\n", err)
+			} else {
+				// Print with muted colors for readability
+				jsonStr := string(jsonBytes)
+				fmt.Println(jsonStr)
+			}
+		}
+	}
 }
 
 // PrintFinalStats displays the final session summary

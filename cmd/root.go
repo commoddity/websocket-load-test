@@ -26,6 +26,7 @@ var (
 	apiKey        string
 	subscriptions string
 	subCount      int
+	enableLogging bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -70,12 +71,13 @@ Prerequisites:
     --subs "newHeads,newPendingTransactions" \
     --count 10
 
-  # High-load testing on Polygon
+  # High-load testing on Polygon with message logging
   websocket-load-test \
     --service "polygon" \
     --app-id "your_app_id_here" \
     --api-key "your_api_key_here" \
-    --count 50
+    --count 50 \
+    --log
 
   # Available services: ethereum, polygon, xrplevm, arbitrum, optimism, base
 
@@ -112,6 +114,9 @@ func init() {
 	rootCmd.Flags().IntVarP(&subCount, "count", "c", 1,
 		"📊 Number of subscriptions to create for each type")
 
+	rootCmd.Flags().BoolVarP(&enableLogging, "log", "l", false,
+		"📝 Display latest WebSocket message in formatted JSON")
+
 	// Mark required flags
 	_ = rootCmd.MarkFlagRequired("app-id")
 	_ = rootCmd.MarkFlagRequired("api-key")
@@ -129,6 +134,7 @@ func runWebSocketLoadTest(cmd *cobra.Command, args []string) {
 		AuthHeader:    apiKey,
 		Subscriptions: subscriptions,
 		SubCount:      subCount,
+		EnableLogging: enableLogging,
 	}
 
 	// Setup interrupt handler
@@ -138,6 +144,10 @@ func runWebSocketLoadTest(cmd *cobra.Command, args []string) {
 
 	// Initialize components
 	statsManager := stats.NewManager()
+	if enableLogging {
+		statsManager.EnableLogging()
+		statsManager.SetConfig(config)
+	}
 	wsClient := client.NewWebSocketClient(config, statsManager, done)
 
 	// Display startup information

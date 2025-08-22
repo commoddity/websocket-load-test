@@ -2,7 +2,7 @@
 
 A simple WebSocket client designed for load testing and monitoring Grove Portal's WebSocket endpoints. 
 
-This tool provides real-time statistics, subscription management, and detailed connection monitoring for Ethereum-compatible blockchain WebSocket services.
+This tool provides real-time statistics, subscription management, per-type message logging, and detailed connection monitoring for Ethereum-compatible blockchain WebSocket services.
 
 <p align="center">
 <a href="https://github.com/buildwithgrove/path">
@@ -47,6 +47,15 @@ websocket-load-test \
     --api-key $GROVE_PORTAL_API_KEY \
     --subs "newHeads,newPendingTransactions" \
     --count 10
+
+# With message logging enabled
+websocket-load-test \
+    --service "xrplevm" \
+    --app-id $GROVE_PORTAL_APP_ID \
+    --api-key $GROVE_PORTAL_API_KEY \
+    --subs "newHeads,newPendingTransactions" \
+    --count 10 \
+    --log
 ```
 
 This example will:
@@ -57,14 +66,15 @@ This example will:
 
 ### Command Line Options
 
-| Flag        | Short  | Description                        | Default                  | Example                            |
-| ----------- | ------ | ---------------------------------- | ------------------------ | ---------------------------------- |
-| `--url`     | `-u`   | WebSocket URL to connect to        | `ws://localhost:3069/v1` | `--url "wss://api.example.com/v1"` |
-| `--service` | `-s`   | Target service ID header value     | `ethereum`               | `--service "polygon"`              |
-| `--auth`    | `-a`   | Authorization header value         | _(empty)_                | `--auth "token123"`                |
-| `--subs`    | _none_ | Comma-separated subscription types | `newHeads`               | `--subs "newHeads,logs"`           |
-| `--count`   | `-c`   | Number of subscriptions per type   | `1`                      | `--count 10`                       |
-| `--help`    | `-h`   | Show detailed help and examples    | _none_                   | `--help`                           |
+| Flag        | Short  | Description                        | Default      | Example                  |
+| ----------- | ------ | ---------------------------------- | ------------ | ------------------------ |
+| `--service` | `-s`   | Grove Portal service name          | `ethereum`   | `--service "polygon"`    |
+| `--app-id`  | `-a`   | Grove Portal Application ID        | _(required)_ | `--app-id "app123"`      |
+| `--api-key` | `-k`   | Grove Portal API Key               | _(required)_ | `--api-key "key456"`     |
+| `--subs`    | _none_ | Comma-separated subscription types | `newHeads`   | `--subs "newHeads,logs"` |
+| `--count`   | `-c`   | Number of subscriptions per type   | `1`          | `--count 10`             |
+| `--log`     | `-l`   | Display latest WebSocket message   | `false`      | `--log`                  |
+| `--help`    | `-h`   | Show detailed help and examples    | _none_       | `--help`                 |
 
 Use `websocket-load-test --help` for detailed usage examples and feature descriptions.
 
@@ -72,6 +82,70 @@ Use `websocket-load-test --help` for detailed usage examples and feature descrip
 
 - **`newHeads`** 🧊 - New block headers
 - **`newPendingTransactions`** ⚡ - Pending transactions
+
+## Message Logging
+
+Use the `--log` or `-l` flag to enable real-time message logging. When enabled, the tool displays the latest received WebSocket message for each subscription type in formatted JSON below the dashboard:
+
+```bash
+# Enable message logging
+websocket-load-test \
+    --service "ethereum" \
+    --app-id "your_app_id" \
+    --api-key "your_api_key" \
+    --log
+```
+
+**Features:**
+- 📝 **Per-Type Display**: Shows the latest message for each subscription type (newHeads, newPendingTransactions, logs, etc.)
+- 🕐 **Timestamps**: Displays when each message was received
+- 🎨 **JSON Formatting**: Pretty-printed JSON with proper indentation
+- 🔄 **Live Updates**: Automatically replaces with newer messages per type
+- 📊 **Categorization**: Separates subscription events, confirmations, and errors
+- 🎯 **Organized Layout**: Groups messages by subscription type with appropriate emojis
+
+**Example Output:**
+```
+🕐 Last Updated: 19:57:32
+
+📝 LATEST MESSAGES BY TYPE
+
+✅ confirmations - Received at 19:57:25:
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x123abc..."
+}
+
+🧊 newHeads - Received at 19:57:31:
+{
+  "jsonrpc": "2.0",
+  "method": "eth_subscription",
+  "params": {
+    "subscription": "0x123abc...",
+    "result": {
+      "number": "0x1234567",
+      "hash": "0xabcdef...",
+      "parentHash": "0x987654...",
+      "timestamp": "0x64a8b2f0"
+    }
+  }
+}
+
+⚡ newPendingTransactions - Received at 19:57:30:
+{
+  "jsonrpc": "2.0",
+  "method": "eth_subscription",
+  "params": {
+    "subscription": "0x456def...",
+    "result": {
+      "hash": "0x987654...",
+      "from": "0xabc123...",
+      "to": "0xdef456..."
+    }
+  }
+}
+```
 
 ## Dashboard Features
 

@@ -54,4 +54,12 @@ type Config struct {
 	AuthHeader    string
 	Subscriptions string
 	SubCount      int
+	EnableLogging bool
+}
+
+// LatestMessage holds information about the most recent WebSocket message
+type LatestMessage struct {
+	Content     interface{}
+	ReceivedAt  time.Time
+	MessageType string
 }

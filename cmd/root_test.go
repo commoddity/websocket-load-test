@@ -109,6 +109,12 @@ func TestRootCommand_Flags(t *testing.T) {
 			expectedType: "int",
 			required:     false,
 		},
+		{
+			name:         "log flag",
+			flagName:     "log",
+			expectedType: "bool",
+			required:     false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -195,6 +201,11 @@ func TestRootCommand_ShortFlags(t *testing.T) {
 			name:      "count short flag",
 			flagName:  "count",
 			shorthand: "c",
+		},
+		{
+			name:      "log short flag",
+			flagName:  "log",
+			shorthand: "l",
 		},
 	}
 
