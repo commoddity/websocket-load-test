@@ -2,7 +2,7 @@
 
 A simple WebSocket client designed for load testing and monitoring Grove Portal's WebSocket endpoints. 
 
-This tool provides real-time statistics, subscription management, per-type message logging, and detailed connection monitoring for Ethereum-compatible blockchain WebSocket services.
+This tool provides real-time statistics, subscription management, per-type message logging, and detailed connection monitoring for XRPL EVM blockchain WebSocket services.
 
 <p align="center">
 <a href="https://github.com/buildwithgrove/path">
@@ -40,9 +40,8 @@ go install github.com/commoddity/websocket-load-test@latest
 ## Usage
 
 ```bash
-# Load test XRPLEVM WebSocket endpoint
+# Load test XRPL EVM WebSocket endpoint (defaults to xrplevm service)
 websocket-load-test \                                                  
-    --service "xrplevm" \
     --app-id $GROVE_PORTAL_APP_ID \
     --api-key $GROVE_PORTAL_API_KEY \
     --subs "newHeads,newPendingTransactions" \
@@ -50,7 +49,6 @@ websocket-load-test \
 
 # With message logging enabled
 websocket-load-test \
-    --service "xrplevm" \
     --app-id $GROVE_PORTAL_APP_ID \
     --api-key $GROVE_PORTAL_API_KEY \
     --subs "newHeads,newPendingTransactions" \
@@ -68,7 +66,7 @@ This example will:
 
 | Flag        | Short  | Description                        | Default      | Example                  |
 | ----------- | ------ | ---------------------------------- | ------------ | ------------------------ |
-| `--service` | `-s`   | Grove Portal service name          | `ethereum`   | `--service "polygon"`    |
+| `--service` | `-s`   | Grove Portal service (only xrplevm) | `xrplevm`    | `--service "xrplevm"`    |
 | `--app-id`  | `-a`   | Grove Portal Application ID        | _(required)_ | `--app-id "app123"`      |
 | `--api-key` | `-k`   | Grove Portal API Key               | _(required)_ | `--api-key "key456"`     |
 | `--subs`    | _none_ | Comma-separated subscription types | `newHeads`   | `--subs "newHeads,logs"` |
@@ -90,7 +88,6 @@ Use the `--log` or `-l` flag to enable real-time message logging. When enabled, 
 ```bash
 # Enable message logging
 websocket-load-test \
-    --service "ethereum" \
     --app-id "your_app_id" \
     --api-key "your_api_key" \
     --log
@@ -223,8 +220,8 @@ This tool is designed for Grove Portal. Required configuration:
 ### Best Practices
 
 1. **Authentication**: Always provide your Grove Portal API key with `--api-key` or `-k`
-2. **Service Selection**: Choose the correct service (ethereum, polygon, xrplevm, arbitrum, optimism, base)
-3. **URL Auto-Construction**: URLs are automatically built as `wss://[service].rpc.grove.city/v1/[app-id]`
+2. **Service Selection**: Only XRPL EVM (xrplevm) service is supported
+3. **URL Auto-Construction**: URLs are automatically built as `wss://xrplevm.rpc.grove.city/v1/[app-id]`
 4. **Load Testing**: Start with small `--count` values (1-10) and increase gradually
 5. **Rate Limits**: Monitor your Grove Portal dashboard for usage and limits
 
@@ -236,7 +233,7 @@ This tool is designed for Grove Portal. Required configuration:
    - Verify your Grove Portal Application ID is correct in the URL
    - Check that your API key is valid and set correctly
    - Ensure you have an active Grove Portal subscription
-   - Verify the chain service ID matches (ethereum, polygon, xrplevm, etc.)
+   - Verify you're using the xrplevm service
 
 2. **Authentication Errors**
    - Check that `GROVE_PORTAL_API_KEY` environment variable is set

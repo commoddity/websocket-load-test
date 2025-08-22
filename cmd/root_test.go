@@ -13,52 +13,28 @@ func TestURL_Construction(t *testing.T) {
 		wantURL   string
 	}{
 		{
-			name:      "ethereum service",
-			serviceID: "ethereum",
-			appID:     "app123",
-			wantURL:   "wss://ethereum.rpc.grove.city/v1/app123",
-		},
-		{
-			name:      "polygon service",
-			serviceID: "polygon",
-			appID:     "app456",
-			wantURL:   "wss://polygon.rpc.grove.city/v1/app456",
-		},
-		{
 			name:      "xrplevm service",
+			serviceID: "xrplevm",
+			appID:     "app123",
+			wantURL:   "wss://xrplevm.rpc.grove.city/v1/app123",
+		},
+		{
+			name:      "xrplevm with different app ID",
 			serviceID: "xrplevm",
 			appID:     "app789",
 			wantURL:   "wss://xrplevm.rpc.grove.city/v1/app789",
 		},
 		{
-			name:      "arbitrum service",
-			serviceID: "arbitrum",
-			appID:     "appABC",
-			wantURL:   "wss://arbitrum.rpc.grove.city/v1/appABC",
-		},
-		{
-			name:      "optimism service",
-			serviceID: "optimism",
-			appID:     "appDEF",
-			wantURL:   "wss://optimism.rpc.grove.city/v1/appDEF",
-		},
-		{
-			name:      "base service",
-			serviceID: "base",
-			appID:     "appGHI",
-			wantURL:   "wss://base.rpc.grove.city/v1/appGHI",
-		},
-		{
 			name:      "empty app ID",
-			serviceID: "ethereum",
+			serviceID: "xrplevm",
 			appID:     "",
-			wantURL:   "wss://ethereum.rpc.grove.city/v1/",
+			wantURL:   "wss://xrplevm.rpc.grove.city/v1/",
 		},
 		{
 			name:      "special characters in app ID",
-			serviceID: "ethereum",
+			serviceID: "xrplevm",
 			appID:     "app-123_test",
-			wantURL:   "wss://ethereum.rpc.grove.city/v1/app-123_test",
+			wantURL:   "wss://xrplevm.rpc.grove.city/v1/app-123_test",
 		},
 	}
 
@@ -148,7 +124,7 @@ func TestRootCommand_Defaults(t *testing.T) {
 		{
 			name:            "service default",
 			flagName:        "service",
-			expectedDefault: "ethereum",
+			expectedDefault: "xrplevm",
 		},
 		{
 			name:            "subs default",
@@ -265,34 +241,19 @@ func TestValidateService(t *testing.T) {
 		valid   bool
 	}{
 		{
-			name:    "ethereum service",
-			service: "ethereum",
-			valid:   true,
-		},
-		{
-			name:    "polygon service",
-			service: "polygon",
-			valid:   true,
-		},
-		{
 			name:    "xrplevm service",
 			service: "xrplevm",
 			valid:   true,
 		},
 		{
-			name:    "arbitrum service",
-			service: "arbitrum",
-			valid:   true,
+			name:    "ethereum service (not supported)",
+			service: "ethereum",
+			valid:   false,
 		},
 		{
-			name:    "optimism service",
-			service: "optimism",
-			valid:   true,
-		},
-		{
-			name:    "base service",
-			service: "base",
-			valid:   true,
+			name:    "polygon service (not supported)",
+			service: "polygon",
+			valid:   false,
 		},
 		{
 			name:    "invalid service",
@@ -305,19 +266,14 @@ func TestValidateService(t *testing.T) {
 			valid:   false,
 		},
 		{
-			name:    "case sensitive - Ethereum",
-			service: "Ethereum",
+			name:    "case sensitive - XRPLEVM",
+			service: "XRPLEVM",
 			valid:   false,
 		},
 	}
 
 	validServices := map[string]bool{
-		"ethereum": true,
-		"polygon":  true,
-		"xrplevm":  true,
-		"arbitrum": true,
-		"optimism": true,
-		"base":     true,
+		"xrplevm": true,
 	}
 
 	for _, tt := range tests {
@@ -331,7 +287,7 @@ func TestValidateService(t *testing.T) {
 }
 
 func BenchmarkURL_Construction(b *testing.B) {
-	serviceID := "ethereum"
+	serviceID := "xrplevm"
 	appID := "app123"
 
 	b.ResetTimer()

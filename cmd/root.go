@@ -57,32 +57,29 @@ Prerequisites:
 
 	Example: `🌿 Grove Portal Examples:
 
-  # Basic connection test
+  # Basic connection test (defaults to xrplevm)
   websocket-load-test \
-    --service "ethereum" \
     --app-id "your_app_id_here" \
     --api-key "your_api_key_here"
 
-  # Load test XRPL EVM with multiple subscriptions
+  # XRPL EVM with multiple subscriptions
   websocket-load-test \
-    -s "xrplevm" \
     -a "your_app_id_here" \
     -k "your_api_key_here" \
     --subs "newHeads,newPendingTransactions" \
     --count 10
 
-  # High-load testing on Polygon with message logging
+  # High-load testing with message logging
   websocket-load-test \
-    --service "polygon" \
     --app-id "your_app_id_here" \
     --api-key "your_api_key_here" \
     --count 50 \
     --log
 
-  # Available services: ethereum, polygon, xrplevm, arbitrum, optimism, base
+  # Only XRPL EVM service is supported
 
 URLs are automatically constructed as:
-  wss://[service].rpc.grove.city/v1/[app-id]`,
+  wss://xrplevm.rpc.grove.city/v1/[app-id]`,
 
 	Run: runWebSocketLoadTest,
 }
@@ -98,8 +95,8 @@ func Execute() {
 
 func init() {
 	// Grove Portal connection flags
-	rootCmd.Flags().StringVarP(&serviceID, "service", "s", "ethereum",
-		"🎯 Grove Portal service (ethereum, polygon, xrplevm, arbitrum, optimism, base)")
+	rootCmd.Flags().StringVarP(&serviceID, "service", "s", "xrplevm",
+		"🎯 Grove Portal service (only xrplevm supported)")
 
 	rootCmd.Flags().StringVarP(&appID, "app-id", "a", "",
 		"🆔 Grove Portal Application ID")
@@ -124,6 +121,12 @@ func init() {
 
 // runWebSocketLoadTest is the main application logic
 func runWebSocketLoadTest(cmd *cobra.Command, args []string) {
+	// Validate service
+	if serviceID != "xrplevm" {
+		fmt.Printf("❌ Error: Only 'xrplevm' service is supported, got '%s'\n", serviceID)
+		os.Exit(1)
+	}
+
 	// Construct Grove Portal WebSocket URL
 	wsURL := fmt.Sprintf("wss://%s.rpc.grove.city/v1/%s", serviceID, appID)
 
