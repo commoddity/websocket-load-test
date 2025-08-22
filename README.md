@@ -64,15 +64,15 @@ This example will:
 
 ### Command Line Options
 
-| Flag        | Short  | Description                        | Default      | Example                  |
-| ----------- | ------ | ---------------------------------- | ------------ | ------------------------ |
+| Flag        | Short  | Description                         | Default      | Example                  |
+| ----------- | ------ | ----------------------------------- | ------------ | ------------------------ |
 | `--service` | `-s`   | Grove Portal service (only xrplevm) | `xrplevm`    | `--service "xrplevm"`    |
-| `--app-id`  | `-a`   | Grove Portal Application ID        | _(required)_ | `--app-id "app123"`      |
-| `--api-key` | `-k`   | Grove Portal API Key               | _(required)_ | `--api-key "key456"`     |
-| `--subs`    | _none_ | Comma-separated subscription types | `newHeads`   | `--subs "newHeads,logs"` |
-| `--count`   | `-c`   | Number of subscriptions per type   | `1`          | `--count 10`             |
-| `--log`     | `-l`   | Display latest WebSocket message   | `false`      | `--log`                  |
-| `--help`    | `-h`   | Show detailed help and examples    | _none_       | `--help`                 |
+| `--app-id`  | `-a`   | Grove Portal Application ID         | _(required)_ | `--app-id "app123"`      |
+| `--api-key` | `-k`   | Grove Portal API Key                | _(required)_ | `--api-key "key456"`     |
+| `--subs`    | _none_ | Comma-separated subscription types  | `newHeads`   | `--subs "newHeads,logs"` |
+| `--count`   | `-c`   | Number of subscriptions per type    | `1`          | `--count 10`             |
+| `--log`     | `-l`   | Display latest WebSocket message    | `false`      | `--log`                  |
+| `--help`    | `-h`   | Show detailed help and examples     | _none_       | `--help`                 |
 
 Use `websocket-load-test --help` for detailed usage examples and feature descriptions.
 
